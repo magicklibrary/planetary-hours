@@ -1,16 +1,20 @@
+/* General body styling */
 body {
   margin: 0;
   padding: 0;
   background: black;
   color: white;
   font-family: serif;
+  line-height: 1.5;
 }
 
+/* Header */
 header {
   text-align: center;
   padding: 20px;
 }
 
+/* Location input section */
 #location {
   display: flex;
   justify-content: center;
@@ -18,70 +22,86 @@ header {
   padding: 10px;
 }
 
+/* Input fields */
 input {
   background: black;
   color: white;
   border: 1px solid white;
-  padding: 5px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 1em;
 }
 
+/* Buttons */
 button {
   background: white;
   color: black;
   border: none;
   padding: 6px 12px;
   cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.95em;
+  transition: 0.2s;
+}
+button:hover {
+  background: #ddd;
 }
 
+/* Main hours container */
 #hours {
   padding: 20px;
 }
 
+/* Each planetary hour */
 .hour {
   padding: 10px;
   margin-bottom: 5px;
   border: 1px solid white;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
 }
 .hour.active {
   background: white;
   color: black;
 }
 
+/* Active hour strong text */
 .hour.active strong {
   color: black;
 }
-.zodiac {
-  opacity: 0.8;
-  font-size: 1.1em;
-}
 
+/* Zodiac info */
 .zodiac {
-  font-size: 1.2em;
+  opacity: 0.85;
+  font-size: 1.1em;
   margin-top: 4px;
 }
+.hour .zodiac div {
+  margin-left: 6px;
+  font-size: 0.85em;
+}
+
+/* Navigation bar */
 nav {
   display: flex;
   justify-content: center;
   gap: 8px;
   padding: 8px;
+  flex-wrap: wrap;
 }
 
+/* Iframe for subpages */
 iframe {
   width: 100%;
   height: calc(100vh - 120px);
   border: none;
 }
-.zodiac div {
-  font-size: 0.9em;
-  opacity: 0.85;
-}
+
+/* Preformatted text for guidance */
 pre {
   white-space: pre-wrap;
   font-family: serif;
   padding: 12px;
-}
-.hour .zodiac div {
-  margin-left: 6px;
-  font-size: 0.85em;
-  opacity: 0.8;
+  line-height: 1.4;
 }
