@@ -106,6 +106,9 @@ document.getElementById("saveLocation").onclick = () => {
 
 // Refresh planetary hours every minute
 setInterval(render, 60000);
+promptLocation(); // ask user for location if not stored
+render();
+setInterval(render, 60000); // refresh every minute
 render(); // initial render
 
 // Navigation functions
