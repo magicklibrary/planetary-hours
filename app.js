@@ -1,23 +1,15 @@
-// ======== app.js (secure) ========
+// ======== app.js ========
 
-// ---- Main containers ----
+// ---- DOM Containers ----
 const hoursContainer = document.getElementById("hours");
 const dayDisplay = document.getElementById("currentDay");
 const view = document.getElementById("view");
 
-// ---- Chaldean day rulers ----
+// ---- Chaldean day rulers (Sunday=0) ----
 const DAY_RULERS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
 
-// ---- Sanitize text for safe display/storage ----
-function sanitizeText(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerText || div.textContent || "";
-}
-
-// ---- Save/load location ----
+// ---- Save/load location (uses storage.js internally if present) ----
 function saveLocation(lat, lon, city = "") {
-  city = sanitizeText(city); // sanitize before storing
   localStorage.setItem("location", JSON.stringify({ lat, lon, city }));
 }
 
@@ -35,30 +27,52 @@ function loadLocation() {
   return null;
 }
 
-// ---- Prompt user for location ----
+// ---- Mobile-friendly location ----
+async function getLocation() {
+  const saved = loadLocation();
+  if (saved) return saved;
+
+  // Try browser geolocation
+  if (navigator.geolocation) {
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          saveLocation(lat, lon, "Current Location");
+          resolve({ lat, lon, city: "Current Location" });
+        },
+        async () => {
+          // Fallback to manual prompt
+          await promptLocation();
+          resolve(loadLocation());
+        },
+        { timeout: 10000 }
+      );
+    });
+  } else {
+    // Fallback if geolocation not available
+    await promptLocation();
+    return loadLocation();
+  }
+}
+
+// ---- Prompt user for location (manual fallback) ----
 async function promptLocation() {
-  let input = prompt("Enter your city, state, and country (e.g., New York, NY, USA):");
+  let input = prompt("Enter your city, state, and country (e.g., New York, NY, USA). Leave country blank for USA:");
   if (!input) return;
 
-  // Assume USA if only city/state is entered
+  // Assume USA if only city + state
   if (!input.includes(",")) input += ", USA";
-
-  input = sanitizeText(input); // sanitize input
 
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}`,
-      {
-        headers: {
-          "User-Agent": "PlanetaryHoursApp/1.0 (contact@yourdomain.com)",
-          "Accept": "application/json"
-        }
-      }
+      { headers: { "User-Agent": "PlanetaryHoursApp/1.0", "Accept": "application/json" } }
     );
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-
     if (!data || data.length === 0) {
       alert("Location not found. Please try again.");
       return;
@@ -75,10 +89,10 @@ async function promptLocation() {
 }
 
 // ---- Render planetary hours ----
-function render() {
+async function render() {
   hoursContainer.innerHTML = "";
 
-  const location = loadLocation();
+  const location = await getLocation();
   if (!location) {
     dayDisplay.textContent = "No location set. Click 'Update Location'.";
     return;
@@ -88,24 +102,24 @@ function render() {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayRuler = DAY_RULERS[today.getDay()];
 
-  dayDisplay.textContent = `Day ruler: ${dayRuler} | Location: ${sanitizeText(location.city)}`;
+  dayDisplay.textContent = `Day ruler: ${dayRuler} | Location: ${location.city || "Unknown"}`;
 
+  // Get sunrise and sunset
   const sunTimes = getSunTimes(today, location.lat, location.lon);
   const hours = generatePlanetaryHours(dayRuler, sunTimes.sunrise, sunTimes.sunset);
 
-  // Load natal data
+  // Load natal chart
   let natal = null;
   try {
-    const natalRaw = localStorage.getItem("birthData");
-    if (natalRaw) natal = JSON.parse(natalRaw);
-  } catch (e) {
-    console.warn("Invalid birthData:", e);
-  }
+    const raw = localStorage.getItem("birthData");
+    if (raw) natal = JSON.parse(raw);
+  } catch (e) { console.warn("Invalid birthData:", e); }
 
   hours.forEach(h => {
     const div = document.createElement("div");
     div.className = "hour";
 
+    // Highlight current hour
     if (now >= h.start && now < h.end) div.classList.add("active");
 
     div.style.borderColor = h.planet.color;
@@ -124,11 +138,11 @@ function render() {
     const strength = getHourStrength(h.planet.name, zodiac.name, natalMatch);
 
     div.innerHTML = `
-      <strong style="color:${h.planet.color}">${sanitizeText(h.planet.symbol)} ${sanitizeText(h.planet.name)}</strong><br>
+      <strong style="color:${h.planet.color}">${h.planet.symbol} ${h.planet.name}</strong><br>
       ${h.start.toLocaleTimeString()} - ${h.end.toLocaleTimeString()}<br>
       <span class="zodiac">
-        ${sanitizeText(zodiac.symbol)} ${sanitizeText(zodiac.name)}<br>
-        Dignity: ${sanitizeText(dignity)}<br>
+        ${zodiac.symbol} ${zodiac.name}<br>
+        Dignity: ${dignity}<br>
         Strength: ${strength}${natalMatch ? "<br>Resonant with natal chart" : ""}
       </span>
     `;
@@ -162,8 +176,8 @@ function setupNavigation() {
 setupNavigation();
 render();
 
-if (!loadLocation()) {
-  setTimeout(promptLocation, 500);
-}
+// Only prompt user if no location is saved
+if (!loadLocation()) setTimeout(promptLocation, 500);
 
+// Refresh every minute
 setInterval(render, 60000);
