@@ -1,54 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Electional Hours</title>
   <style>
-    body { font-family: sans-serif; background: black; color: white; }
+    body { font-family: sans-serif; background: black; color: white; margin: 20px; }
+    h2 { text-align: center; margin-bottom: 16px; }
     .hour-bar { display: flex; margin: 4px 0; }
-    .hour-segment { flex: 1; padding: 4px; text-align: center; }
+    .hour-segment { flex: 1; padding: 8px; text-align: center; border-radius: 4px; color: black; font-weight: bold; }
   </style>
 </head>
 <body>
 
 <h2>Electional Hour Overview</h2>
-<div id="electional"></div>
+<div id="electional">Loading...</div>
 
 <script src="ephemeris.js"></script>
 <script src="zodiac.js"></script>
 <script src="planetary.js"></script>
 <script src="dignity.js"></script>
+<script src="storage.js"></script> <!-- Make sure this defines loadLocation() -->
 
 <script>
-const location = loadLocation();
-if (!location) {
-  document.getElementById("electional").innerText = "No location set.";
-} else {
+(async function() {
+  const container = document.getElementById("electional");
+  container.innerHTML = ""; // Clear loading text
+
+  const location = loadLocation();
+  if (!location) {
+    container.innerText = "No location set.";
+    return;
+  }
+
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayRuler = DAY_RULERS[today.getDay()];
   const sunTimes = getSunTimes(today, location.lat, location.lon);
   const hours = generatePlanetaryHours(dayRuler, sunTimes.sunrise, sunTimes.sunset);
-  const container = document.getElementById("electional");
+
+  if (!hours || hours.length === 0) {
+    container.innerText = "No planetary hours could be generated.";
+    return;
+  }
 
   hours.forEach(h => {
+    // Ensure h.start is a Date object
+    if (!(h.start instanceof Date)) h.start = new Date(h.start);
+    
     const zodiac = getPlanetZodiac(h.planet.name, h.start);
+
+    // Natal resonance
     const natalRaw = localStorage.getItem("birthData");
     let natalMatch = false;
     if (natalRaw) {
       const natal = JSON.parse(natalRaw);
-      const natalLongs = planetLongitudes(new Date(natal.date + "T" + natal.time));
+      const natalLongs = planetLongitudes(new Date(`${natal.date}T${natal.time}`));
       natalMatch = getZodiacFromLongitude(natalLongs[h.planet.name]).name === zodiac.name;
     }
 
     const strength = getHourStrength(h.planet.name, zodiac.name, natalMatch);
+    const alpha = Math.min(0.9, 0.1 + strength / 5); // keep alpha < 1 for better visibility
+
     const div = document.createElement("div");
     div.className = "hour-bar";
-    div.innerHTML = `<div class="hour-segment" style="background-color: rgba(255,255,255,${0.1 + strength/5})">
-      ${h.planet.symbol} ${h.planet.name} <br> ${h.start.getHours()}:00
-    </div>`;
+    div.innerHTML = `
+      <div class="hour-segment" style="background-color: rgba(255,255,255,${alpha}); color: ${h.planet.color}">
+        ${h.planet.symbol} ${h.planet.name} <br>
+        ${h.start.getHours().toString().padStart(2, '0')}:00
+        ${natalMatch ? "<br>Resonant with natal chart" : ""}
+      </div>
+    `;
     container.appendChild(div);
   });
-}
+})();
 </script>
 
 </body>
