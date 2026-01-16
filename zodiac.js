@@ -1,3 +1,6 @@
+// zodiac.js
+
+// Zodiac signs with start longitude (0° = 0 Aries)
 const ZODIAC_SIGNS = [
   { name: "Aries", symbol: "♈", start: 0 },
   { name: "Taurus", symbol: "♉", start: 30 },
@@ -13,11 +16,28 @@ const ZODIAC_SIGNS = [
   { name: "Pisces", symbol: "♓", start: 330 }
 ];
 
+/**
+ * Normalize degrees to 0–360
+ * @param {number} deg
+ * @returns {number}
+ */
+function normalizeDegrees(deg) {
+  return (deg % 360 + 360) % 360;
+}
+
+/**
+ * Get zodiac sign from a planet's ecliptic longitude
+ * @param {number} deg - longitude in degrees
+ * @returns {{name: string, symbol: string}}
+ */
 function getZodiacFromLongitude(deg) {
+  const longitude = normalizeDegrees(deg);
+  // iterate from last to first to correctly handle 0–360 wrap
   for (let i = ZODIAC_SIGNS.length - 1; i >= 0; i--) {
-    if (deg >= ZODIAC_SIGNS[i].start) {
-      return ZODIAC_SIGNS[i];
+    if (longitude >= ZODIAC_SIGNS[i].start) {
+      return { name: ZODIAC_SIGNS[i].name, symbol: ZODIAC_SIGNS[i].symbol };
     }
   }
-  return ZODIAC_SIGNS[0];
+  // fallback (should never happen)
+  return { name: "Aries", symbol: "♈" };
 }
