@@ -110,4 +110,7 @@ function openSettings() {
 function openInstructions() {
   view.src = "instructions.html";
 }
+function openNatal() {
+  view.src = "natal.html";
+}
 
