@@ -75,3 +75,8 @@ iframe {
   font-size: 0.9em;
   opacity: 0.85;
 }
+pre {
+  white-space: pre-wrap;
+  font-family: serif;
+  padding: 12px;
+}
