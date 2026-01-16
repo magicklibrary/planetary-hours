@@ -1,0 +1,44 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: black;
+  color: white;
+  font-family: serif;
+}
+
+header {
+  text-align: center;
+  padding: 20px;
+}
+
+#location {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+input {
+  background: black;
+  color: white;
+  border: 1px solid white;
+  padding: 5px;
+}
+
+button {
+  background: white;
+  color: black;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+#hours {
+  padding: 20px;
+}
+
+.hour {
+  padding: 10px;
+  margin-bottom: 5px;
+  border: 1px solid white;
+}
