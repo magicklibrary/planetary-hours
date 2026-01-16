@@ -80,3 +80,8 @@ pre {
   font-family: serif;
   padding: 12px;
 }
+.hour .zodiac div {
+  margin-left: 6px;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
