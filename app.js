@@ -84,3 +84,16 @@ function render() {
 
     // Dignity and strength
     const dignity = getDignity(h.planet
+// Navigation buttons
+document.getElementById("btnMain").addEventListener("click", () => { view.src = "main.html"; });
+document.getElementById("btnSettings").addEventListener("click", () => { view.src = "settings.html"; });
+document.getElementById("btnInstructions").addEventListener("click", () => { view.src = "instructions.html"; });
+document.getElementById("btnNatal").addEventListener("click", () => { view.src = "natal.html"; });
+document.getElementById("btnGuidance").addEventListener("click", () => { view.src = "guidance.html"; });
+document.getElementById("btnElectional").addEventListener("click", () => { view.src = "electional.html"; });
+document.getElementById("btnLegend").addEventListener("click", () => { view.src = "legend.html"; });
+
+// Update location button
+document.getElementById("updateLocationBtn").addEventListener("click", () => {
+  promptLocation();
+});
