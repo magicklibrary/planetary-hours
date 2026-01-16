@@ -59,3 +59,8 @@ function generatePlanetaryHours(dayRuler, sunrise, sunset) {
 
   return hours;
 }
+function getPlanetZodiac(planetName, date) {
+  const longs = planetLongitudes(date);
+  const lon = longs[planetName];
+  return getZodiacFromLongitude(lon);
+}
