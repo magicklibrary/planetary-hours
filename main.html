@@ -1,9 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Planetary Hours</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: black;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    #hours {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .hour {
+      padding: 10px;
+      border: 2px solid gray;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .hour.active {
+      border-color: gold;
+      background-color: rgba(255, 215, 0, 0.1);
+    }
+
+    .hour strong {
+      font-size: 1.1em;
+    }
+
+    .zodiac {
+      margin-top: 4px;
+      font-size: 0.9em;
+      opacity: 0.85;
+    }
+  </style>
 </head>
 <body>
-  <div id="hours"></div>
+  <header>
+    <h2>Planetary Hours Today</h2>
+  </header>
+
+  <main>
+    <div id="hours" class="hours-container">
+      <!-- Planetary hours will be dynamically injected here by app.js -->
+    </div>
+  </main>
 </body>
 </html>
