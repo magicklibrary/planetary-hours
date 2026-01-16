@@ -2,38 +2,52 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>Current Guidance</title>
+  <style>
+    body { font-family: sans-serif; background: black; color: white; padding: 1rem; }
+    pre { white-space: pre-wrap; }
+  </style>
 </head>
 <body>
 
 <h2>Current Guidance</h2>
-
-<pre id="guidanceText"></pre>
+<pre id="guidanceText">Loading...</pre>
 
 <script src="ephemeris.js"></script>
 <script src="zodiac.js"></script>
 <script src="planetary.js"></script>
+<script src="dignity.js"></script>
 <script src="guidance.js"></script>
 
 <script>
-function loadGuidance() {
+async function loadGuidance() {
   const location = loadLocation();
-  if (!location) return;
+  if (!location) {
+    document.getElementById("guidanceText").innerText = "No location set.";
+    return;
+  }
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
   const dayRuler = DAY_RULERS[today.getDay()];
+
+  // Compute sunrise/sunset and planetary hours
   const sunTimes = getSunTimes(today, location.lat, location.lon);
   const hours = generatePlanetaryHours(dayRuler, sunTimes.sunrise, sunTimes.sunset);
 
-  const currentHour = hours.find(h => now >= h.start && now < h.end);
-  if (!currentHour) return;
+  // Find current planetary hour
+  const currentHour = getCurrentPlanetaryHour(hours, now);
+  if (!currentHour) {
+    document.getElementById("guidanceText").innerText = "No active planetary hour found.";
+    return;
+  }
 
+  // Zodiac for current hour planet
   const zodiac = getPlanetZodiac(currentHour.planet.name, now);
 
+  // Check natal resonance
   let natalMatch = false;
   const natalRaw = localStorage.getItem("birthData");
-
   if (natalRaw) {
     const natal = JSON.parse(natalRaw);
     const natalDate = new Date(natal.date + "T" + natal.time);
@@ -42,33 +56,36 @@ function loadGuidance() {
     natalMatch = natalZodiac.name === zodiac.name;
   }
 
-  const text = generateGuidance(
+  // Compute dignity and strength
+  const dignity = getDignity(currentHour.planet.name, zodiac.name);
+  const strength = getHourStrength(currentHour.planet.name, zodiac.name, natalMatch);
+
+  // Generate guidance text
+  const guidanceText = generateGuidance(
     currentHour.planet.name,
     zodiac.name,
     natalMatch
   );
 
-  document.getElementById("guidanceText").innerText = text;
+  // Planetary seal (if defined in guidance.js)
+  const seal = PLANET_SEALS ? PLANET_SEALS[currentHour.planet.name] || "N/A" : "N/A";
+
+  // Populate guidance text
+  document.getElementById("guidanceText").innerText =
+    `Planetary Seal: ${seal}\n` +
+    `Planet: ${currentHour.planet.symbol} ${currentHour.planet.name}\n` +
+    `Zodiac: ${zodiac.symbol} ${zodiac.name}\n` +
+    `Dignity: ${dignity}\n` +
+    `Strength Score: ${strength}\n\n` +
+    guidanceText;
 }
 
+// Initial load
 loadGuidance();
-  const dignity = getDignity(currentHour.planet.name, zodiac.name);
-const strength = getHourStrength(currentHour.planet.name, zodiac.name, natalMatch);
 
-const text = generateGuidance(
-  currentHour.planet.name,
-  zodiac.name,
-  natalMatch
-);
-
-document.getElementById("guidanceText").innerText =
-  `Planetary Seal: ${PLANET_SEALS[currentHour.planet.name]}\n` +
-  `Dignity: ${dignity}\n` +
-  `Strength Score: ${strength}\n\n` +
-  text;
-
+// Optional: refresh every 5 minutes to update active planetary hour
+setInterval(loadGuidance, 5 * 60 * 1000);
 </script>
-
 
 </body>
 </html>
