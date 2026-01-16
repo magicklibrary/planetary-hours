@@ -59,3 +59,15 @@ button {
   font-size: 1.2em;
   margin-top: 4px;
 }
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+iframe {
+  width: 100%;
+  height: calc(100vh - 120px);
+  border: none;
+}
