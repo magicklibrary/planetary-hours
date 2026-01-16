@@ -50,6 +50,10 @@ button {
 .hour.active strong {
   color: black;
 }
+.zodiac {
+  opacity: 0.8;
+  font-size: 1.1em;
+}
 
 .zodiac {
   font-size: 1.2em;
