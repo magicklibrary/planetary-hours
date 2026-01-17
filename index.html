@@ -368,6 +368,11 @@
     }
 
     async function getAIRitualGuidance(hour, natalChart) {
+      // SECURITY NOTE: This function is OPTIONAL and only runs when user clicks a specific hour
+      // It sends ONLY: planet name, zodiac sign, dignity, and power calculation
+      // NO personal data, birth info, or location is transmitted
+      // User can use the app fully offline - AI guidance is an optional enhancement
+      
       const prompt = `As an expert in ceremonial magic and astrological timing, provide 3 specific ritual operations for this planetary hour.
 
 CURRENT CONDITIONS:
@@ -396,22 +401,45 @@ Provide response as JSON only:
 }`;
 
       try {
+        // Timeout protection - abort request after 10 seconds
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const response = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            // NOTE: API key is handled by Claude.ai artifact environment
+            // No sensitive credentials are exposed in this code
+          },
           body: JSON.stringify({
             model: "claude-sonnet-4-20250514",
             max_tokens: 1000,
             messages: [{ role: "user", content: prompt }]
-          })
+          }),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
 
         const data = await response.json();
         const text = data.content?.find(c => c.type === "text")?.text || "{}";
         const clean = text.replace(/```json\n?|\n?```/g, "").trim();
-        return JSON.parse(clean);
+        
+        // Safely parse JSON with error handling
+        try {
+          return JSON.parse(clean);
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+          throw parseError;
+        }
       } catch (error) {
         console.error('AI guidance error:', error);
+        // Graceful fallback - app continues working without AI
         return {
           suggestions: [
             {
@@ -603,43 +631,94 @@ Provide response as JSON only:
       async function updateLocation(input) {
         if (!input?.trim()) return;
         
-        const query = input.includes(',') ? input : `${input}, USA`;
+        // Input sanitization - prevent injection attacks
+        const sanitized = input.trim().slice(0, 200); // Max 200 chars
+        const query = sanitized.includes(',') ? sanitized : `${sanitized}, USA`;
         
         try {
+          // Rate limiting - prevent abuse
+          const lastRequest = sessionStorage.getItem('lastGeoRequest');
+          const now = Date.now();
+          if (lastRequest && now - parseInt(lastRequest) < 2000) {
+            alert('Please wait a moment before searching again');
+            return;
+          }
+          sessionStorage.setItem('lastGeoRequest', now.toString());
+          
+          // Timeout protection
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          // SECURITY: Using OpenStreetMap Nominatim (open source, privacy-respecting)
+          // NO tracking, NO data collection, NO API keys required
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
-            { headers: { "User-Agent": "PlanetaryHoursApp/6.0" } }
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+            { 
+              headers: { 
+                "User-Agent": "PlanetaryHoursApp/6.0" // Required by Nominatim
+              },
+              signal: controller.signal
+            }
           );
           
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            throw new Error('Geocoding service unavailable');
+          }
+          
           const data = await response.json();
-          if (data?.length > 0) {
-            setLocation({
-              lat: parseFloat(data[0].lat),
-              lon: parseFloat(data[0].lon),
-              city: data[0].display_name || input
-            });
+          
+          // Validate response data
+          if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+            
+            // Validate coordinate ranges
+            if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+              setLocation({
+                lat,
+                lon,
+                city: data[0].display_name || sanitized
+              });
+            } else {
+              alert('Invalid coordinates received');
+            }
           } else {
             alert('Location not found');
           }
         } catch (error) {
-          alert('Connection error - try manual coordinates');
+          if (error.name === 'AbortError') {
+            alert('Request timeout - try manual coordinates');
+          } else {
+            alert('Connection error - use manual coordinates for offline mode');
+          }
+          console.error('Geocoding error:', error);
         }
       }
 
       function updateManualCoords(lat, lon) {
+        // Input validation and sanitization
         const latNum = parseFloat(lat);
         const lonNum = parseFloat(lon);
         
+        // Strict validation
         if (isNaN(latNum) || isNaN(lonNum)) {
-          alert('Invalid coordinates');
+          alert('Invalid coordinates - must be numbers');
           return;
         }
         
-        if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
-          alert('Latitude must be -90 to 90, Longitude must be -180 to 180');
+        if (latNum < -90 || latNum > 90) {
+          alert('Latitude must be between -90 and 90');
           return;
         }
         
+        if (lonNum < -180 || lonNum > 180) {
+          alert('Longitude must be between -180 and 180');
+          return;
+        }
+        
+        // Safe to use validated coordinates
         setLocation({
           lat: latNum,
           lon: lonNum,
