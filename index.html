@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, Calendar, Book, Settings, Eye, Star, MapPin, Download, AlertCircle } from 'lucide-react';
+import { Clock, Calendar, Book, Settings, Eye, Star } from 'lucide-react';
 
 // ASTRONOMICAL CALCULATIONS
 const RAD = Math.PI / 180;
@@ -98,38 +98,38 @@ const PLANET_DIGNITIES = {
 const CORRESPONDENCES = {
   Saturn: {
     archangel: "Cassiel", intelligence: "Agiel", spirit: "Zazel",
-    metal: "Lead", incense: "Myrrh", crystals: "Onyx",
-    suitable: "Bindings, discipline", divineNames: "YHVH Elohim"
+    metal: "Lead", incense: "Myrrh, patchouli", crystals: "Onyx, Obsidian",
+    suitable: "Bindings, protection, discipline", divineNames: "YHVH Elohim"
   },
   Jupiter: {
     archangel: "Zadkiel", intelligence: "Iophiel", spirit: "Hismael",
-    metal: "Tin", incense: "Cedar", crystals: "Amethyst",
-    suitable: "Wealth, expansion", divineNames: "El"
+    metal: "Tin", incense: "Cedar, sage", crystals: "Amethyst, Lapis",
+    suitable: "Wealth, expansion, legal matters", divineNames: "El"
   },
   Mars: {
     archangel: "Camael", intelligence: "Graphiel", spirit: "Bartzabel",
-    metal: "Iron", incense: "Dragon's blood", crystals: "Ruby",
-    suitable: "Courage, victory", divineNames: "Elohim Gibor"
+    metal: "Iron", incense: "Dragon's blood, tobacco", crystals: "Ruby, Garnet",
+    suitable: "Courage, victory, conflict", divineNames: "Elohim Gibor"
   },
   Sun: {
     archangel: "Michael", intelligence: "Nakhiel", spirit: "Sorath",
-    metal: "Gold", incense: "Frankincense", crystals: "Citrine",
-    suitable: "Success, healing", divineNames: "YHVH Eloah va-Daath"
+    metal: "Gold", incense: "Frankincense, cinnamon", crystals: "Citrine, Sunstone",
+    suitable: "Success, authority, healing", divineNames: "YHVH Eloah va-Daath"
   },
   Venus: {
     archangel: "Haniel", intelligence: "Hagiel", spirit: "Kedemel",
-    metal: "Copper", incense: "Rose", crystals: "Emerald",
-    suitable: "Love, beauty", divineNames: "YHVH Tzabaoth"
+    metal: "Copper", incense: "Rose, benzoin", crystals: "Emerald, Rose Quartz",
+    suitable: "Love, beauty, art", divineNames: "YHVH Tzabaoth"
   },
   Mercury: {
     archangel: "Raphael", intelligence: "Tiriel", spirit: "Taphthartharath",
-    metal: "Mercury", incense: "Lavender", crystals: "Agate",
-    suitable: "Communication, learning", divineNames: "Elohim Tzabaoth"
+    metal: "Mercury", incense: "Lavender, dittany", crystals: "Agate, Aventurine",
+    suitable: "Communication, learning, travel", divineNames: "Elohim Tzabaoth"
   },
   Moon: {
     archangel: "Gabriel", intelligence: "Malkah be-Tarshishim", spirit: "Chasmodai",
-    metal: "Silver", incense: "Jasmine", crystals: "Moonstone",
-    suitable: "Dreams, intuition", divineNames: "Shaddai El Chai"
+    metal: "Silver", incense: "Jasmine, lotus", crystals: "Moonstone, Selenite",
+    suitable: "Dreams, intuition, psychic work", divineNames: "Shaddai El Chai"
   }
 };
 
@@ -399,186 +399,6 @@ export default function PlanetaryHoursApp() {
           
           <div style={{ textAlign: 'center', color: '#b8a080', marginBottom: '1rem' }}>
             {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </div>
-
-          {currentHour && (
-            <div style={{
-              background: `linear-gradient(135deg, ${dayColors.primary}33 0%, ${dayColors.secondary}33 100%)`,
-              border: `2px solid ${dayColors.primary}`,
-              borderRadius: 12,
-              padding: '1rem',
-              textAlign: 'center',
-              marginBottom: '1rem'
-            }}>
-              <div style={{ fontSize: '2rem', color: currentHour.planet.color }}>
-                {currentHour.planet.symbol} {currentHour.planet.name}
-              </div>
-              <div style={{ fontSize: '0.9rem', color: '#e0d0b0', marginTop: '0.5rem' }}>
-                {formatTime(currentHour.start)} - {formatTime(currentHour.end)} • {getTimeRemaining(currentHour.end)} remaining
-              </div>
-            </div>
-          )}
-
-          <div style={{ textAlign: 'center', color: '#b8a080', fontSize: '0.9rem' }}>
-            Day Ruler: {PLANET_DETAILS[dayRuler].symbol} {dayRuler} • {location.city}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem 0', overflowX: 'auto', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {[
-            { id: 'hours', label: 'Hours', icon: Clock },
-            { id: 'electional', label: 'Electional', icon: Star },
-            { id: 'natal', label: 'Natal', icon: Calendar },
-            { id: 'correspondences', label: 'Info', icon: Book },
-            { id: 'settings', label: 'Settings', icon: Settings }
-          ].map(view => {
-            const Icon = view.icon;
-            return (
-              <button
-                key={view.id}
-                onClick={() => setActiveView(view.id)}
-                style={{
-                  background: activeView === view.id 
-                    ? `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`
-                    : `${dayColors.bg}dd`,
-                  color: activeView === view.id ? dayColors.bg : dayColors.primary,
-                  border: `1px solid ${dayColors.primary}`,
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontFamily: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  transition: 'all 0.3s',
-                  boxShadow: activeView === view.id ? `0 0 20px ${dayColors.primary}60` : 'none'
-                }}
-              >
-                <Icon size={16} />
-                {view.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ paddingBottom: '2rem' }}>
-          {activeView === 'hours' && <HoursView hours={hours} currentHour={currentHour} dayColors={dayColors} onSelectHour={setSelectedHour} formatTime={formatTime} getTimeRemaining={getTimeRemaining} />}
-          {activeView === 'electional' && <ElectionalView hours={hours} currentHour={currentHour} dayColors={dayColors} onSelectHour={setSelectedHour} formatTime={formatTime} />}
-          {activeView === 'natal' && <NatalView natalChart={natalChart} birthData={birthData} dayColors={dayColors} onNavigateToSettings={() => setActiveView('settings')} />}
-          {activeView === 'correspondences' && <CorrespondencesView dayColors={dayColors} expandedPlanet={expandedPlanet} onExpandPlanet={setExpandedPlanet} />}
-          {activeView === 'settings' && <SettingsView location={location} birthData={birthData} dayColors={dayColors} onUpdateLocation={updateLocation} onUpdateBirthData={setBirthData} isLoading={isLoading} />}
-        </div>
-      </div>
-
-      {selectedHour && (
-        <HourDetailModal 
-          hour={selectedHour}
-          dayColors={dayColors}
-          onClose={() => setSelectedHour(null)}
-          onStartScrying={() => setShowScrying(true)}
-          formatTime={formatTime}
-        />
-      )}
-    </div>
-  );
-}
-
-function HoursView({ hours, currentHour, dayColors, onSelectHour, formatTime, getTimeRemaining }) {
-  return (
-    <div>
-      <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
-        24 Planetary Hours
-      </h2>
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {hours.map((h, idx) => {
-          const isActive = currentHour && h.start.getTime() === currentHour.start.getTime();
-          return (
-            <div
-              key={idx}
-              onClick={() => onSelectHour(h)}
-              style={{
-                background: isActive 
-                  ? `linear-gradient(135deg, ${dayColors.primary}33 0%, ${dayColors.secondary}33 100%)`
-                  : `${dayColors.bg}99`,
-                border: `2px solid ${isActive ? dayColors.primary : '#3a2a5a'}`,
-                borderLeftWidth: 6,
-                borderLeftColor: h.planet.color,
-                borderRadius: 12,
-                padding: '1.25rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ fontSize: '2.5rem', color: h.planet.color }}>{h.planet.symbol}</div>
-                  <div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: h.planet.color }}>{h.planet.name}</div>
-                    <div style={{ color: '#b8a080', fontSize: '0.9rem' }}>{formatTime(h.start)} - {formatTime(h.end)}</div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '2rem' }}>{h.zodiac.symbol}</div>
-                  <div style={{ fontSize: '0.9rem', color: '#e0d0b0' }}>{h.zodiac.name}</div>
-                </div>
-              </div>
-              {isActive && (
-                <div style={{
-                  background: dayColors.primary,
-                  color: dayColors.bg,
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: 12,
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  display: 'inline-block',
-                  marginTop: '0.5rem'
-                }}>
-                  ACTIVE • {getTimeRemaining(h.end)}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function ElectionalView({ hours, currentHour, dayColors, onSelectHour, formatTime }) {
-  const optimal = hours.filter(h => h.strength > 1 || h.natalMatch);
-  return (
-    <div>
-      <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
-        Electional Hours ({optimal.length} optimal)
-      </h2>
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {hours.map((h, idx) => (
-          <div key={idx} onClick={() => onSelectHour(h)} style={{
-            background: `${dayColors.bg}99`,
-            border: `2px solid #3a2a5a`,
-            borderLeftWidth: 6,
-            borderLeftColor: h.planet.color,
-            borderRadius: 12,
-            padding: '1.25rem',
-            cursor: 'pointer',
-            opacity: h.strength > 1 ? 1 : 0.5
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <div style={{ fontSize: '2.5rem', color: h.planet.color }}>{h.planet.symbol}</div>
-                <div>
-                  <div style={{ fontSize: '1.5rem', color: h.planet.color }}>{h.planet.name}</div>
-                  <div style={{ fontSize: '0.9rem', color: '#b8a080' }}>{formatTime(h.start)} - {formatTime(h.end)}</div>
-                </div>
-              </div>
-              <div>
-                <div>{h.zodiac.symbol} {h.zodiac.name}</div>
-                <div style={{ fontSize: '0.8rem' }}>Strength: {h.strength}</div>
-              </div>
-            </div>
           </div>
         ))}
       </div>
@@ -921,13 +741,11 @@ function ScryingScreen({ onExit, showExit, onInteract, planetColor }) {
 
       ctx.putImageData(imageData, 0, 0);
       
-      // Add scanlines
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       for (let y = 0; y < canvas.height; y += 4) {
         ctx.fillRect(0, y, canvas.width, 2);
       }
       
-      // Add flicker
       if (Math.random() > 0.95) {
         ctx.fillStyle = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.05)`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -989,6 +807,191 @@ function ScryingScreen({ onExit, showExit, onInteract, planetColor }) {
           Exit Scrying
         </button>
       )}
+    </div>
+  );
+}
+
+          {currentHour && (
+            <div style={{
+              background: `linear-gradient(135deg, ${dayColors.primary}33 0%, ${dayColors.secondary}33 100%)`,
+              border: `2px solid ${dayColors.primary}`,
+              borderRadius: 12,
+              padding: '1rem',
+              textAlign: 'center',
+              marginBottom: '1rem'
+            }}>
+              <div style={{ fontSize: '2rem', color: currentHour.planet.color }}>
+                {currentHour.planet.symbol} {currentHour.planet.name}
+              </div>
+              <div style={{ fontSize: '0.9rem', color: '#e0d0b0', marginTop: '0.5rem' }}>
+                {formatTime(currentHour.start)} - {formatTime(currentHour.end)} • {getTimeRemaining(currentHour.end)} remaining
+              </div>
+            </div>
+          )}
+
+          <div style={{ textAlign: 'center', color: '#b8a080', fontSize: '0.9rem' }}>
+            Day Ruler: {PLANET_DETAILS[dayRuler].symbol} {dayRuler} • {location.city}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem 0', overflowX: 'auto', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {[
+            { id: 'hours', label: 'Hours', icon: Clock },
+            { id: 'electional', label: 'Electional', icon: Star },
+            { id: 'natal', label: 'Natal', icon: Calendar },
+            { id: 'correspondences', label: 'Info', icon: Book },
+            { id: 'settings', label: 'Settings', icon: Settings }
+          ].map(view => {
+            const Icon = view.icon;
+            return (
+              <button
+                key={view.id}
+                onClick={() => setActiveView(view.id)}
+                style={{
+                  background: activeView === view.id 
+                    ? `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`
+                    : `${dayColors.bg}dd`,
+                  color: activeView === view.id ? dayColors.bg : dayColors.primary,
+                  border: `1px solid ${dayColors.primary}`,
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.3s',
+                  boxShadow: activeView === view.id ? `0 0 20px ${dayColors.primary}60` : 'none'
+                }}
+              >
+                <Icon size={16} />
+                {view.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ paddingBottom: '2rem' }}>
+          {activeView === 'hours' && <HoursView hours={hours} currentHour={currentHour} dayColors={dayColors} onSelectHour={setSelectedHour} formatTime={formatTime} getTimeRemaining={getTimeRemaining} />}
+          {activeView === 'electional' && <ElectionalView hours={hours} currentHour={currentHour} dayColors={dayColors} onSelectHour={setSelectedHour} formatTime={formatTime} />}
+          {activeView === 'natal' && <NatalView natalChart={natalChart} birthData={birthData} dayColors={dayColors} onNavigateToSettings={() => setActiveView('settings')} />}
+          {activeView === 'correspondences' && <CorrespondencesView dayColors={dayColors} expandedPlanet={expandedPlanet} onExpandPlanet={setExpandedPlanet} />}
+          {activeView === 'settings' && <SettingsView location={location} birthData={birthData} dayColors={dayColors} onUpdateLocation={updateLocation} onUpdateBirthData={setBirthData} isLoading={isLoading} />}
+        </div>
+      </div>
+
+      {selectedHour && (
+        <HourDetailModal 
+          hour={selectedHour}
+          dayColors={dayColors}
+          onClose={() => setSelectedHour(null)}
+          onStartScrying={() => setShowScrying(true)}
+          formatTime={formatTime}
+        />
+      )}
+    </div>
+  );
+}
+
+function HoursView({ hours, currentHour, dayColors, onSelectHour, formatTime, getTimeRemaining }) {
+  return (
+    <div>
+      <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
+        24 Planetary Hours
+      </h2>
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        {hours.map((h, idx) => {
+          const isActive = currentHour && h.start.getTime() === currentHour.start.getTime();
+          return (
+            <div
+              key={idx}
+              onClick={() => onSelectHour(h)}
+              style={{
+                background: isActive 
+                  ? `linear-gradient(135deg, ${dayColors.primary}33 0%, ${dayColors.secondary}33 100%)`
+                  : `${dayColors.bg}99`,
+                border: `2px solid ${isActive ? dayColors.primary : '#3a2a5a'}`,
+                borderLeftWidth: 6,
+                borderLeftColor: h.planet.color,
+                borderRadius: 12,
+                padding: '1.25rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ fontSize: '2.5rem', color: h.planet.color }}>{h.planet.symbol}</div>
+                  <div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: h.planet.color }}>{h.planet.name}</div>
+                    <div style={{ color: '#b8a080', fontSize: '0.9rem' }}>{formatTime(h.start)} - {formatTime(h.end)}</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '2rem' }}>{h.zodiac.symbol}</div>
+                  <div style={{ fontSize: '0.9rem', color: '#e0d0b0' }}>{h.zodiac.name}</div>
+                </div>
+              </div>
+              {isActive && (
+                <div style={{
+                  background: dayColors.primary,
+                  color: dayColors.bg,
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: 12,
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  display: 'inline-block',
+                  marginTop: '0.5rem'
+                }}>
+                  ACTIVE • {getTimeRemaining(h.end)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ElectionalView({ hours, currentHour, dayColors, onSelectHour, formatTime }) {
+  const optimal = hours.filter(h => h.strength > 1 || h.natalMatch);
+  return (
+    <div>
+      <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
+        Electional Hours ({optimal.length} optimal)
+      </h2>
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        {hours.map((h, idx) => (
+          <div key={idx} onClick={() => onSelectHour(h)} style={{
+            background: `${dayColors.bg}99`,
+            border: `2px solid #3a2a5a`,
+            borderLeftWidth: 6,
+            borderLeftColor: h.planet.color,
+            borderRadius: 12,
+            padding: '1.25rem',
+            cursor: 'pointer',
+            opacity: h.strength > 1 ? 1 : 0.5
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div style={{ fontSize: '2.5rem', color: h.planet.color }}>{h.planet.symbol}</div>
+                <div>
+                  <div style={{ fontSize: '1.5rem', color: h.planet.color }}>{h.planet.name}</div>
+                  <div style={{ fontSize: '0.9rem', color: '#b8a080' }}>{formatTime(h.start)} - {formatTime(h.end)}</div>
+                </div>
+              </div>
+              <div>
+                <div>{h.zodiac.symbol} {h.zodiac.name}</div>
+                <div style={{ fontSize: '0.8rem' }}>Strength: {h.strength}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
