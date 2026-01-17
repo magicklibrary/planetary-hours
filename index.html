@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Book, Settings, Eye, Star } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, Calendar, Book, Settings, Eye, Star, MapPin, Download, AlertCircle } from 'lucide-react';
 
-// ============================================================================
 // ASTRONOMICAL CALCULATIONS
-// ============================================================================
-
 const RAD = Math.PI / 180;
 const J1970 = 2440587.5;
 const J2000 = 2451545.0;
@@ -50,13 +47,8 @@ function planetLongitudes(date) {
   };
 }
 
-// ============================================================================
-// CONSTANTS & DATA
-// ============================================================================
-
 const CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"];
 const DAY_RULERS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const DAY_COLORS = {
   Sun: { bg: '#1a0a00', primary: '#FFD700', secondary: '#FFA500' },
@@ -69,13 +61,13 @@ const DAY_COLORS = {
 };
 
 const PLANET_DETAILS = {
-  Sun: { symbol: "☉", color: "#FFD700", metal: "Gold" },
-  Moon: { symbol: "☽", color: "#C0C0C0", metal: "Silver" },
-  Mercury: { symbol: "☿", color: "#FFA500", metal: "Mercury" },
-  Venus: { symbol: "♀", color: "#00FF7F", metal: "Copper" },
-  Mars: { symbol: "♂", color: "#FF4500", metal: "Iron" },
-  Jupiter: { symbol: "♃", color: "#4169E1", metal: "Tin" },
-  Saturn: { symbol: "♄", color: "#708090", metal: "Lead" }
+  Sun: { symbol: "☉", color: "#FFD700" },
+  Moon: { symbol: "☽", color: "#C0C0C0" },
+  Mercury: { symbol: "☿", color: "#FFA500" },
+  Venus: { symbol: "♀", color: "#00FF7F" },
+  Mars: { symbol: "♂", color: "#FF4500" },
+  Jupiter: { symbol: "♃", color: "#4169E1" },
+  Saturn: { symbol: "♄", color: "#708090" }
 };
 
 const ZODIAC_SIGNS = [
@@ -105,69 +97,51 @@ const PLANET_DIGNITIES = {
 
 const CORRESPONDENCES = {
   Saturn: {
-    archangel: "Cassiel", intelligence: "Agiel", spirit: "Zazel", olympicSpirit: "Arathron",
-    metal: "Lead", incense: "Myrrh, patchouli, cypress",
-    crystals: "Onyx, Obsidian, Jet", suitable: "Bindings, protection, discipline",
-    divineNames: "YHVH Elohim", keywords: "Time, Death, Limitation"
+    archangel: "Cassiel", intelligence: "Agiel", spirit: "Zazel",
+    metal: "Lead", incense: "Myrrh", crystals: "Onyx",
+    suitable: "Bindings, discipline", divineNames: "YHVH Elohim"
   },
   Jupiter: {
-    archangel: "Zadkiel", intelligence: "Iophiel", spirit: "Hismael", olympicSpirit: "Bethor",
-    metal: "Tin", incense: "Cedar, sage, hyssop",
-    crystals: "Amethyst, Lapis Lazuli", suitable: "Wealth, expansion, legal matters",
-    divineNames: "El", keywords: "Expansion, Mercy, Abundance"
+    archangel: "Zadkiel", intelligence: "Iophiel", spirit: "Hismael",
+    metal: "Tin", incense: "Cedar", crystals: "Amethyst",
+    suitable: "Wealth, expansion", divineNames: "El"
   },
   Mars: {
-    archangel: "Camael", intelligence: "Graphiel", spirit: "Bartzabel", olympicSpirit: "Phaleg",
-    metal: "Iron", incense: "Dragon's blood, tobacco",
-    crystals: "Ruby, Garnet, Bloodstone", suitable: "Courage, victory, conflict",
-    divineNames: "Elohim Gibor", keywords: "Strength, War, Passion"
+    archangel: "Camael", intelligence: "Graphiel", spirit: "Bartzabel",
+    metal: "Iron", incense: "Dragon's blood", crystals: "Ruby",
+    suitable: "Courage, victory", divineNames: "Elohim Gibor"
   },
   Sun: {
-    archangel: "Michael", intelligence: "Nakhiel", spirit: "Sorath", olympicSpirit: "Och",
-    metal: "Gold", incense: "Frankincense, cinnamon",
-    crystals: "Citrine, Sunstone, Amber", suitable: "Success, authority, healing",
-    divineNames: "YHVH Eloah va-Daath", keywords: "Beauty, Harmony, Glory"
+    archangel: "Michael", intelligence: "Nakhiel", spirit: "Sorath",
+    metal: "Gold", incense: "Frankincense", crystals: "Citrine",
+    suitable: "Success, healing", divineNames: "YHVH Eloah va-Daath"
   },
   Venus: {
-    archangel: "Haniel", intelligence: "Hagiel", spirit: "Kedemel", olympicSpirit: "Hagith",
-    metal: "Copper", incense: "Rose, benzoin, sandalwood",
-    crystals: "Emerald, Rose Quartz, Jade", suitable: "Love, beauty, art",
-    divineNames: "YHVH Tzabaoth", keywords: "Love, Desire, Victory"
+    archangel: "Haniel", intelligence: "Hagiel", spirit: "Kedemel",
+    metal: "Copper", incense: "Rose", crystals: "Emerald",
+    suitable: "Love, beauty", divineNames: "YHVH Tzabaoth"
   },
   Mercury: {
-    archangel: "Raphael", intelligence: "Tiriel", spirit: "Taphthartharath", olympicSpirit: "Ophiel",
-    metal: "Mercury", incense: "Lavender, dittany, storax",
-    crystals: "Agate, Aventurine, Citrine", suitable: "Communication, learning, travel",
-    divineNames: "Elohim Tzabaoth", keywords: "Intellect, Magic"
+    archangel: "Raphael", intelligence: "Tiriel", spirit: "Taphthartharath",
+    metal: "Mercury", incense: "Lavender", crystals: "Agate",
+    suitable: "Communication, learning", divineNames: "Elohim Tzabaoth"
   },
   Moon: {
-    archangel: "Gabriel", intelligence: "Malkah be-Tarshishim", spirit: "Chasmodai", olympicSpirit: "Phul",
-    metal: "Silver", incense: "Jasmine, lotus, camphor",
-    crystals: "Moonstone, Selenite, Pearl", suitable: "Dreams, intuition, psychic work",
-    divineNames: "Shaddai El Chai", keywords: "Foundation, Cycles"
+    archangel: "Gabriel", intelligence: "Malkah be-Tarshishim", spirit: "Chasmodai",
+    metal: "Silver", incense: "Jasmine", crystals: "Moonstone",
+    suitable: "Dreams, intuition", divineNames: "Shaddai El Chai"
   }
 };
 
-const HYMNS = {
-  Saturn: "Ethereal father, mighty Titan hear,\nGreat fire of gods and men revere.\nWith council pure and strong,\nTo thee perfection and decrease belong.\n\nFather of vast eternity divine,\nMighty Saturn, speech is thine.\nVenerable root from which being shoots,\nBless these rites, grant blessed end.",
-  Jupiter: "Much-honored Jove, supremely great,\nHoly rites to thee consecrate.\nKing descending from above,\nMagnanimous commanding Jove.\n\nSource of abundance, purifying king,\nFrom whom all natures spring.\nHear my prayer, give health divine,\nPeace and wealth, forever thine.",
-  Mars: "Brass-beating power, minister of war,\nGuard of arms, sacred lore.\nIn glittering arms the earth you beat,\nWith leaping rapid sounding feet.\n\nImmortal strength, to your power consigned,\nTask to protect all of mankind.\nAssist these works, courage divine,\nMake victory and strength mine.",
-  Sun: "Golden Titan, eternal eye divine,\nIlluminating all with radiant shine.\nSelf-born unwearied, light you spread,\nMirror of delight overhead.\n\nFather of ages, commander supreme,\nSource of existence, pure fiery gleam.\nGreat eye of Nature, justice dispense,\nBless these rites with thy radiance.",
-  Venus: "Heavenly one, laughter-loving queen,\nSea-born, night-loving, awesome mien.\nFrom you necessity first came,\nAll-connecting, nightly dame.\n\nSource of persuasion, secretly fav'ring,\nMother of loves, banquets savoring.\nCyprus-born, to my prayer incline,\nCome all-attractive, be divine.",
-  Mercury: "Hermes divine, to my prayer incline,\nAngel of Jove, Maia's son so fine.\nCelestial messenger of varied skill,\nWatchful Argus fell to thy will.\n\nGreat life-supporter, joy is thine,\nAll language you explain divine.\nAssist my works with graceful speech,\nMemory's increase within my reach.",
-  Moon: "Silver goddess, diffusing gentle light,\nBull-horned wanderer through night.\nMother of ages, fruit-producing Moon,\nMaking night's reflected noon.\n\nQueen of stars, all-wise hail,\nIn graceful robe and shining veil.\nBlessed goddess, starry and bright,\nShine on these rites with chaste light."
-};
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
+function sanitizeInput(input) {
+  if (typeof input !== 'string') return '';
+  return input.trim().replace(/[<>'"]/g, '').substring(0, 200);
+}
 
 function getZodiacFromLongitude(deg) {
   const longitude = normalize(deg);
   for (let i = ZODIAC_SIGNS.length - 1; i >= 0; i--) {
-    if (longitude >= ZODIAC_SIGNS[i].start) {
-      return ZODIAC_SIGNS[i];
-    }
+    if (longitude >= ZODIAC_SIGNS[i].start) return ZODIAC_SIGNS[i];
   }
   return ZODIAC_SIGNS[0];
 }
@@ -195,10 +169,7 @@ function getHourStrength(planet, zodiacName, natalMatch = false) {
 function generatePlanetaryHours(dayRuler, sunrise, sunset) {
   const hours = [];
   const nextSunrise = new Date(sunrise.getTime() + 24 * 60 * 60 * 1000);
-  
-  // Day hours: sunrise to sunset (12 hours)
   const dayLength = (sunset - sunrise) / 12;
-  // Night hours: sunset to next sunrise (12 hours)
   const nightLength = (nextSunrise - sunset) / 12;
   
   let startIndex = CHALDEAN_ORDER.indexOf(dayRuler);
@@ -211,11 +182,9 @@ function generatePlanetaryHours(dayRuler, sunrise, sunset) {
     
     let start, end;
     if (i < 12) {
-      // Day hours (1-12): calculated from sunrise
       start = new Date(sunrise.getTime() + i * dayLength);
       end = new Date(sunrise.getTime() + (i + 1) * dayLength);
     } else {
-      // Night hours (13-24): calculated from sunset
       start = new Date(sunset.getTime() + (i - 12) * nightLength);
       end = new Date(sunset.getTime() + (i - 11) * nightLength);
     }
@@ -225,10 +194,7 @@ function generatePlanetaryHours(dayRuler, sunrise, sunset) {
     
     hours.push({ 
       planet: { name: planetName, ...planet },
-      start, 
-      end,
-      zodiac,
-      dignity,
+      start, end, zodiac, dignity,
       isDayHour: i < 12,
       hourNumber: i + 1
     });
@@ -236,12 +202,20 @@ function generatePlanetaryHours(dayRuler, sunrise, sunset) {
   return hours;
 }
 
-// ============================================================================
-// MAIN APP COMPONENT
-// ============================================================================
+const rateLimiter = {
+  requests: {},
+  canMakeRequest(key, max = 10, window = 60000) {
+    const now = Date.now();
+    if (!this.requests[key]) this.requests[key] = [];
+    this.requests[key] = this.requests[key].filter(t => now - t < window);
+    if (this.requests[key].length >= max) return false;
+    this.requests[key].push(now);
+    return true;
+  }
+};
 
 export default function PlanetaryHoursApp() {
-  const [location, setLocation] = useState({ lat: 40.7128, lon: -74.0060, city: "New York, NY" });
+  const [location, setLocation] = useState({ lat: 40.7128, lon: -74.0060, city: "New York, NY, USA" });
   const [hours, setHours] = useState([]);
   const [currentHour, setCurrentHour] = useState(null);
   const [birthData, setBirthData] = useState(null);
@@ -252,6 +226,7 @@ export default function PlanetaryHoursApp() {
   const [showScrying, setShowScrying] = useState(false);
   const [showExitButton, setShowExitButton] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(false);
 
   const dayRuler = DAY_RULERS[currentTime.getDay()];
   const dayColors = DAY_COLORS[dayRuler];
@@ -278,7 +253,7 @@ export default function PlanetaryHoursApp() {
   }, [hours]);
 
   useEffect(() => {
-    if (birthData && birthData.date && birthData.time) {
+    if (birthData?.date && birthData?.time) {
       try {
         const birthDateTime = new Date(`${birthData.date}T${birthData.time}`);
         const longs = planetLongitudes(birthDateTime);
@@ -289,7 +264,7 @@ export default function PlanetaryHoursApp() {
         }));
         setNatalChart(chart);
       } catch (error) {
-        console.error('Error calculating natal chart:', error);
+        console.error('Natal chart error:', error);
       }
     }
   }, [birthData]);
@@ -319,66 +294,70 @@ export default function PlanetaryHoursApp() {
       const current = hoursWithNatal.find(h => now >= h.start && now < h.end);
       setCurrentHour(current);
     } catch (error) {
-      console.error('Error calculating hours:', error);
+      console.error('Hours calculation error:', error);
     }
   }
 
   async function updateLocation(input) {
     if (!input) return;
     
-    const query = input.includes(',') && input.split(',').length > 2 ? input : 
-                  input.includes(',') ? `${input}, USA` : `${input}, USA`;
+    const sanitized = sanitizeInput(input);
+    if (!sanitized) {
+      alert('Invalid location');
+      return;
+    }
+
+    if (!rateLimiter.canMakeRequest('geocode')) {
+      alert('Too many requests. Wait a moment.');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    const query = sanitized.includes(',') && sanitized.split(',').length >= 2 
+      ? sanitized 
+      : `${sanitized}, USA`;
     
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
-        { headers: { "User-Agent": "PlanetaryHoursApp/4.0" } }
+        { 
+          headers: { "User-Agent": "PlanetaryHoursApp/5.0" },
+          signal: controller.signal
+        }
       );
       
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) throw new Error('Service unavailable');
+      
       const data = await response.json();
-      if (data && data.length > 0) {
+      if (data?.length > 0) {
         setLocation({
           lat: parseFloat(data[0].lat),
           lon: parseFloat(data[0].lon),
-          city: input
+          city: data[0].display_name || sanitized
         });
       } else {
-        alert('Location not found. Please try again.');
+        alert('Location not found');
       }
     } catch (error) {
-      console.error('Error updating location:', error);
-      alert('Error connecting to location service.');
+      alert(error.name === 'AbortError' ? 'Request timed out' : 'Connection error');
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  function startScrying() {
-    setShowScrying(true);
-    setShowExitButton(true);
-    setTimeout(() => setShowExitButton(false), 3000);
-  }
-
-  function exitScrying() {
-    setShowScrying(false);
-    setShowExitButton(true);
-  }
-
-  function showScryingButton() {
-    setShowExitButton(true);
-    setTimeout(() => setShowExitButton(false), 3000);
-  }
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  };
+  const formatTime = (date) => date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
   const getTimeRemaining = (endTime) => {
-    const now = new Date();
-    const diff = endTime - now;
+    const diff = endTime - new Date();
     if (diff < 0) return "Ended";
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+    const mins = Math.floor(diff / 60000);
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   };
 
   return (
@@ -386,9 +365,17 @@ export default function PlanetaryHoursApp() {
       minHeight: '100vh', 
       background: `linear-gradient(135deg, ${dayColors.bg} 0%, ${dayColors.bg}dd 100%)`,
       color: '#f0e6d2',
-      fontFamily: 'Georgia, serif'
+      fontFamily: 'Georgia, serif',
+      transition: 'background 1s'
     }}>
-      {showScrying && <ScryingScreen onExit={exitScrying} showExit={showExitButton} onInteract={showScryingButton} />}
+      {showScrying && (
+        <ScryingScreen 
+          onExit={() => setShowScrying(false)} 
+          showExit={showExitButton} 
+          onInteract={() => { setShowExitButton(true); setTimeout(() => setShowExitButton(false), 3000); }}
+          planetColor={currentHour?.planet.color || dayColors.primary}
+        />
+      )}
 
       <div style={{
         background: `linear-gradient(180deg, ${dayColors.bg}f0 0%, ${dayColors.bg}cc 100%)`,
@@ -405,8 +392,7 @@ export default function PlanetaryHoursApp() {
             fontSize: '2.5rem',
             color: dayColors.primary,
             textShadow: `0 0 20px ${dayColors.primary}80`,
-            marginBottom: '0.5rem',
-            letterSpacing: 2
+            marginBottom: '0.5rem'
           }}>
             ⭐ PLANETARY HOURS ⭐
           </h1>
@@ -424,23 +410,17 @@ export default function PlanetaryHoursApp() {
               textAlign: 'center',
               marginBottom: '1rem'
             }}>
-              <div style={{ fontSize: '0.9rem', color: '#b8a080', marginBottom: '0.5rem' }}>
-                Current Planetary Hour
-              </div>
               <div style={{ fontSize: '2rem', color: currentHour.planet.color }}>
                 {currentHour.planet.symbol} {currentHour.planet.name}
               </div>
               <div style={{ fontSize: '0.9rem', color: '#e0d0b0', marginTop: '0.5rem' }}>
-                {formatTime(currentHour.start)} - {formatTime(currentHour.end)}
-              </div>
-              <div style={{ fontSize: '0.85rem', color: dayColors.primary, marginTop: '0.25rem' }}>
-                {getTimeRemaining(currentHour.end)} remaining
+                {formatTime(currentHour.start)} - {formatTime(currentHour.end)} • {getTimeRemaining(currentHour.end)} remaining
               </div>
             </div>
           )}
 
           <div style={{ textAlign: 'center', color: '#b8a080', fontSize: '0.9rem' }}>
-            Day Ruler: <span style={{ color: dayColors.primary }}>{PLANET_DETAILS[dayRuler].symbol} {dayRuler}</span> ({DAY_NAMES[currentTime.getDay()]}) • {location.city}
+            Day Ruler: {PLANET_DETAILS[dayRuler].symbol} {dayRuler} • {location.city}
           </div>
         </div>
       </div>
@@ -462,7 +442,7 @@ export default function PlanetaryHoursApp() {
                 style={{
                   background: activeView === view.id 
                     ? `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`
-                    : `linear-gradient(135deg, ${dayColors.bg} 0%, ${dayColors.bg}dd 100%)`,
+                    : `${dayColors.bg}dd`,
                   color: activeView === view.id ? dayColors.bg : dayColors.primary,
                   border: `1px solid ${dayColors.primary}`,
                   padding: '0.75rem 1.5rem',
@@ -485,53 +465,11 @@ export default function PlanetaryHoursApp() {
         </div>
 
         <div style={{ paddingBottom: '2rem' }}>
-          {activeView === 'hours' && (
-            <HoursView 
-              hours={hours} 
-              currentHour={currentHour} 
-              dayColors={dayColors}
-              onSelectHour={setSelectedHour}
-              formatTime={formatTime}
-              getTimeRemaining={getTimeRemaining}
-            />
-          )}
-
-          {activeView === 'electional' && (
-            <ElectionalView 
-              hours={hours} 
-              currentHour={currentHour} 
-              dayColors={dayColors}
-              onSelectHour={setSelectedHour}
-              formatTime={formatTime}
-            />
-          )}
-
-          {activeView === 'natal' && (
-            <NatalView 
-              natalChart={natalChart}
-              birthData={birthData}
-              dayColors={dayColors}
-              onNavigateToSettings={() => setActiveView('settings')}
-            />
-          )}
-
-          {activeView === 'correspondences' && (
-            <CorrespondencesView 
-              dayColors={dayColors}
-              expandedPlanet={expandedPlanet}
-              onExpandPlanet={setExpandedPlanet}
-            />
-          )}
-
-          {activeView === 'settings' && (
-            <SettingsView 
-              location={location}
-              birthData={birthData}
-              dayColors={dayColors}
-              onUpdateLocation={updateLocation}
-              onUpdateBirthData={setBirthData}
-            />
-          )}
+          {activeView === 'hours' && <HoursView hours={hours} currentHour={currentHour} dayColors={dayColors} onSelectHour={setSelectedHour} formatTime={formatTime} getTimeRemaining={getTimeRemaining} />}
+          {activeView === 'electional' && <ElectionalView hours={hours} currentHour={currentHour} dayColors={dayColors} onSelectHour={setSelectedHour} formatTime={formatTime} />}
+          {activeView === 'natal' && <NatalView natalChart={natalChart} birthData={birthData} dayColors={dayColors} onNavigateToSettings={() => setActiveView('settings')} />}
+          {activeView === 'correspondences' && <CorrespondencesView dayColors={dayColors} expandedPlanet={expandedPlanet} onExpandPlanet={setExpandedPlanet} />}
+          {activeView === 'settings' && <SettingsView location={location} birthData={birthData} dayColors={dayColors} onUpdateLocation={updateLocation} onUpdateBirthData={setBirthData} isLoading={isLoading} />}
         </div>
       </div>
 
@@ -540,8 +478,7 @@ export default function PlanetaryHoursApp() {
           hour={selectedHour}
           dayColors={dayColors}
           onClose={() => setSelectedHour(null)}
-          onStartScrying={startScrying}
-          getTimeRemaining={getTimeRemaining}
+          onStartScrying={() => setShowScrying(true)}
           formatTime={formatTime}
         />
       )}
@@ -549,19 +486,12 @@ export default function PlanetaryHoursApp() {
   );
 }
 
-// ============================================================================
-// VIEW COMPONENTS
-// ============================================================================
-
 function HoursView({ hours, currentHour, dayColors, onSelectHour, formatTime, getTimeRemaining }) {
   return (
     <div>
       <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
-        24 Planetary Hours Today
+        24 Planetary Hours
       </h2>
-      <p style={{ textAlign: 'center', color: '#b8a080', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-        Day hours (sunrise-sunset) and night hours (sunset-sunrise) calculated using unequal temporal hours
-      </p>
       <div style={{ display: 'grid', gap: '1rem' }}>
         {hours.map((h, idx) => {
           const isActive = currentHour && h.start.getTime() === currentHour.start.getTime();
@@ -572,32 +502,22 @@ function HoursView({ hours, currentHour, dayColors, onSelectHour, formatTime, ge
               style={{
                 background: isActive 
                   ? `linear-gradient(135deg, ${dayColors.primary}33 0%, ${dayColors.secondary}33 100%)`
-                  : `linear-gradient(135deg, ${dayColors.bg}99 0%, ${dayColors.bg}dd 100%)`,
+                  : `${dayColors.bg}99`,
                 border: `2px solid ${isActive ? dayColors.primary : '#3a2a5a'}`,
                 borderLeftWidth: 6,
                 borderLeftColor: h.planet.color,
                 borderRadius: 12,
                 padding: '1.25rem',
                 cursor: 'pointer',
-                transition: 'all 0.3s',
-                animation: isActive ? 'pulse 2s infinite' : 'none'
+                transition: 'all 0.3s'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ fontSize: '2.5rem', color: h.planet.color, lineHeight: 1 }}>
-                    {h.planet.symbol}
-                  </div>
+                  <div style={{ fontSize: '2.5rem', color: h.planet.color }}>{h.planet.symbol}</div>
                   <div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: h.planet.color }}>
-                      {h.planet.name}
-                    </div>
-                    <div style={{ color: '#b8a080', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                      {formatTime(h.start)} - {formatTime(h.end)}
-                    </div>
-                    <div style={{ fontSize: '0.85rem', color: '#b8a080', marginTop: '0.25rem' }}>
-                      {h.isDayHour ? '☀️ Day Hour' : '🌙 Night Hour'}
-                    </div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: h.planet.color }}>{h.planet.name}</div>
+                    <div style={{ color: '#b8a080', fontSize: '0.9rem' }}>{formatTime(h.start)} - {formatTime(h.end)}</div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -605,42 +525,6 @@ function HoursView({ hours, currentHour, dayColors, onSelectHour, formatTime, ge
                   <div style={{ fontSize: '0.9rem', color: '#e0d0b0' }}>{h.zodiac.name}</div>
                 </div>
               </div>
-              
-              <div style={{ 
-                display: 'grid', 
-                gap: '0.5rem', 
-                fontSize: '0.9rem', 
-                marginTop: '1rem',
-                paddingTop: '1rem',
-                borderTop: `1px solid ${dayColors.primary}50`
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Dignity</span>
-                  <span>{h.dignity}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Strength</span>
-                  <span style={{ color: h.strength > 2 ? '#4ade80' : h.strength > 0 ? '#fbbf24' : '#f87171' }}>
-                    {h.strength}
-                  </span>
-                </div>
-              </div>
-              
-              {h.natalMatch && (
-                <div style={{
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
-                  color: 'white',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: 12,
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  display: 'inline-block',
-                  marginTop: '0.5rem'
-                }}>
-                  ⭐ Natal Resonance
-                </div>
-              )}
-              
               {isActive && (
                 <div style={{
                   background: dayColors.primary,
@@ -650,8 +534,7 @@ function HoursView({ hours, currentHour, dayColors, onSelectHour, formatTime, ge
                   fontSize: '0.75rem',
                   fontWeight: 'bold',
                   display: 'inline-block',
-                  marginTop: '0.5rem',
-                  marginLeft: h.natalMatch ? '0.5rem' : 0
+                  marginTop: '0.5rem'
                 }}>
                   ACTIVE • {getTimeRemaining(h.end)}
                 </div>
@@ -660,176 +543,40 @@ function HoursView({ hours, currentHour, dayColors, onSelectHour, formatTime, ge
           );
         })}
       </div>
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 30px ${dayColors.primary}80; }
-          50% { box-shadow: 0 0 40px ${dayColors.primary}cc; }
-        }
-      `}</style>
     </div>
   );
 }
 
 function ElectionalView({ hours, currentHour, dayColors, onSelectHour, formatTime }) {
-  const optimalHours = hours.filter(h => h.strength > 1 || h.natalMatch);
-  
+  const optimal = hours.filter(h => h.strength > 1 || h.natalMatch);
   return (
     <div>
       <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
-        Electional Hours
+        Electional Hours ({optimal.length} optimal)
       </h2>
-      <p style={{ textAlign: 'center', color: '#b8a080', marginBottom: '1.5rem' }}>
-        {optimalHours.length} optimal hours for ceremonial operations
-      </p>
       <div style={{ display: 'grid', gap: '1rem' }}>
-        {hours.map((h, idx) => {
-          const isActive = currentHour && h.start.getTime() === currentHour.start.getTime();
-          const isOptimal = h.strength > 1 || h.natalMatch;
-          const opacity = Math.min(0.95, 0.3 + h.strength / 4);
-          
-          return (
-            <div
-              key={idx}
-              onClick={() => onSelectHour(h)}
-              style={{
-                background: isActive 
-                  ? `linear-gradient(135deg, ${dayColors.primary}33 0%, ${dayColors.secondary}33 100%)`
-                  : `linear-gradient(135deg, ${dayColors.bg}99 0%, ${dayColors.bg}dd 100%)`,
-                border: `2px solid ${isActive ? dayColors.primary : '#3a2a5a'}`,
-                borderLeftWidth: 6,
-                borderLeftColor: h.planet.color,
-                borderRight: isOptimal ? '4px solid #4ade80' : 'none',
-                borderRadius: 12,
-                padding: '1.25rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s',
-                opacity
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ fontSize: '2.5rem', color: h.planet.color, lineHeight: 1 }}>
-                    {h.planet.symbol}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: h.planet.color }}>
-                      {h.planet.name}
-                    </div>
-                    <div style={{ color: '#b8a080', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                      {formatTime(h.start)} - {formatTime(h.end)}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '1.5rem' }}>{h.zodiac.symbol} {h.zodiac.name}</div>
-                  <div style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                    {h.dignity} • Str: {h.strength}
-                  </div>
-                  <div style={{ marginTop: '0.5rem' }}>
-                    {h.natalMatch && (
-                      <div style={{
-                        background: '#ec4899',
-                        color: 'white',
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: 12,
-                        fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        display: 'inline-block'
-                      }}>
-                        ⭐ Resonant
-                      </div>
-                    )}
-                    {isOptimal && (
-                      <div style={{
-                        background: '#4ade80',
-                        color: '#000',
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: 12,
-                        fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        display: 'inline-block',
-                        marginLeft: h.natalMatch ? '0.25rem' : 0
-                      }}>
-                        OPTIMAL
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function NatalView({ natalChart, birthData, dayColors, onNavigateToSettings }) {
-  if (!natalChart) {
-    return (
-      <div style={{ textAlign: 'center', padding: '3rem', color: '#b8a080' }}>
-        <p style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>No birth data set</p>
-        <button
-          onClick={onNavigateToSettings}
-          style={{
-            background: `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`,
-            color: dayColors.bg,
-            border: 'none',
-            padding: '1rem 2rem',
-            borderRadius: 8,
-            fontFamily: 'inherit',
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-        >
-          Add Birth Data in Settings
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
-        Natal Chart
-      </h2>
-      {birthData && (
-        <div style={{ textAlign: 'center', color: '#b8a080', marginBottom: '2rem' }}>
-          Born {birthData.date} at {birthData.time}
-          {birthData.location && <><br />{birthData.location}</>}
-        </div>
-      )}
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {natalChart.map((item, idx) => (
-          <div
-            key={idx}
-            style={{
-              background: `linear-gradient(135deg, ${dayColors.bg}99 0%, ${dayColors.bg}dd 100%)`,
-              border: '2px solid #3a2a5a',
-              borderLeftWidth: 6,
-              borderLeftColor: PLANET_DETAILS[item.planet].color,
-              borderRadius: 12,
-              padding: '1.25rem'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ fontSize: '2.5rem', color: PLANET_DETAILS[item.planet].color, lineHeight: 1 }}>
-                  {PLANET_DETAILS[item.planet].symbol}
-                </div>
+        {hours.map((h, idx) => (
+          <div key={idx} onClick={() => onSelectHour(h)} style={{
+            background: `${dayColors.bg}99`,
+            border: `2px solid #3a2a5a`,
+            borderLeftWidth: 6,
+            borderLeftColor: h.planet.color,
+            borderRadius: 12,
+            padding: '1.25rem',
+            cursor: 'pointer',
+            opacity: h.strength > 1 ? 1 : 0.5
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div style={{ fontSize: '2.5rem', color: h.planet.color }}>{h.planet.symbol}</div>
                 <div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: PLANET_DETAILS[item.planet].color }}>
-                    {item.planet}
-                  </div>
-                  <div style={{ color: '#b8a080', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                    {item.longitude.toFixed(2)}°
-                  </div>
+                  <div style={{ fontSize: '1.5rem', color: h.planet.color }}>{h.planet.name}</div>
+                  <div style={{ fontSize: '0.9rem', color: '#b8a080' }}>{formatTime(h.start)} - {formatTime(h.end)}</div>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '2.5rem' }}>{item.zodiac.symbol}</div>
-                <div style={{ fontSize: '1.2rem', color: '#e0d0b0' }}>{item.zodiac.name}</div>
+              <div>
+                <div>{h.zodiac.symbol} {h.zodiac.name}</div>
+                <div style={{ fontSize: '0.8rem' }}>Strength: {h.strength}</div>
               </div>
             </div>
           </div>
@@ -845,96 +592,76 @@ function CorrespondencesView({ dayColors, expandedPlanet, onExpandPlanet }) {
       <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>
         Planetary Correspondences
       </h2>
-      <p style={{ textAlign: 'center', color: '#b8a080', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-        Click any planet row to reveal expanded details
-      </p>
-      <div style={{ overflowX: 'auto' }}>
-        <div style={{ display: 'grid', gap: '1rem', minWidth: 600 }}>
-          {Object.entries(CORRESPONDENCES).map(([planet, data]) => (
-            <div key={planet}>
-              <div
-                onClick={() => onExpandPlanet(expandedPlanet === planet ? null : planet)}
-                style={{
-                  background: `linear-gradient(135deg, ${dayColors.bg}99 0%, ${dayColors.bg}dd 100())`,
-                  border: `2px solid ${expandedPlanet === planet ? dayColors.primary : '#3a2a5a'}`,
-                  borderLeftWidth: 6,
-                  borderLeftColor: PLANET_DETAILS[planet].color,
-                  borderRadius: 12,
-                  padding: '1rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ fontSize: '2rem', color: PLANET_DETAILS[planet].color }}>
-                      {PLANET_DETAILS[planet].symbol}
-                    </span>
-                    <div>
-                      <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: PLANET_DETAILS[planet].color }}>
-                        {planet}
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: '#b8a080' }}>
-                        {data.metal} • {data.olympicSpirit}
-                      </div>
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        {Object.entries(CORRESPONDENCES).map(([planet, data]) => (
+          <div key={planet}>
+            <div onClick={() => onExpandPlanet(expandedPlanet === planet ? null : planet)} style={{
+              background: `${dayColors.bg}99`,
+              border: `2px solid ${expandedPlanet === planet ? dayColors.primary : '#3a2a5a'}`,
+              borderLeftWidth: 6,
+              borderLeftColor: PLANET_DETAILS[planet].color,
+              borderRadius: 12,
+              padding: '1rem',
+              cursor: 'pointer'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <span style={{ fontSize: '2rem', color: PLANET_DETAILS[planet].color }}>
+                    {PLANET_DETAILS[planet].symbol}
+                  </span>
+                  <div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: PLANET_DETAILS[planet].color }}>
+                      {planet}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#b8a080' }}>
+                      {data.metal}
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.9rem', color: '#b8a080' }}>
-                    {data.suitable}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#b8a080' }}>
+                  {data.suitable}
+                </div>
+              </div>
+            </div>
+            
+            {expandedPlanet === planet && (
+              <div style={{
+                background: `${dayColors.primary}20`,
+                border: `2px solid ${dayColors.primary}`,
+                borderTop: 'none',
+                borderRadius: '0 0 12px 12px',
+                padding: '1.5rem',
+                marginTop: '-12px'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                  <div>
+                    <h4 style={{ color: dayColors.primary, marginBottom: '0.5rem' }}>Sacred Names</h4>
+                    <p style={{ fontSize: '0.9rem' }}><strong>Divine:</strong> {data.divineNames}</p>
+                    <p style={{ fontSize: '0.9rem' }}><strong>Archangel:</strong> {data.archangel}</p>
+                    <p style={{ fontSize: '0.9rem' }}><strong>Intelligence:</strong> {data.intelligence}</p>
+                    <p style={{ fontSize: '0.9rem' }}><strong>Spirit:</strong> {data.spirit}</p>
+                  </div>
+                  <div>
+                    <h4 style={{ color: dayColors.primary, marginBottom: '0.5rem' }}>Materials</h4>
+                    <p style={{ fontSize: '0.9rem' }}><strong>Metal:</strong> {data.metal}</p>
+                    <p style={{ fontSize: '0.9rem' }}><strong>Incense:</strong> {data.incense}</p>
+                    <p style={{ fontSize: '0.9rem' }}><strong>Crystals:</strong> {data.crystals}</p>
                   </div>
                 </div>
               </div>
-              
-              {expandedPlanet === planet && (
-                <div style={{
-                  background: `${dayColors.primary}20`,
-                  border: `2px solid ${dayColors.primary}`,
-                  borderTop: 'none',
-                  borderRadius: '0 0 12px 12px',
-                  padding: '1.5rem',
-                  marginTop: '-12px'
-                }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                    <div>
-                      <h4 style={{ color: dayColors.primary, marginBottom: '0.5rem', fontSize: '1.1rem' }}>Sacred Names</h4>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Divine:</strong> {data.divineNames}</p>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Archangel:</strong> {data.archangel}</p>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Intelligence:</strong> {data.intelligence}</p>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Spirit:</strong> {data.spirit}</p>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Olympic Spirit:</strong> {data.olympicSpirit}</p>
-                    </div>
-                    <div>
-                      <h4 style={{ color: dayColors.primary, marginBottom: '0.5rem', fontSize: '1.1rem' }}>Materials</h4>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Metal:</strong> {data.metal}</p>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Incense:</strong> {data.incense}</p>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Crystals:</strong> {data.crystals}</p>
-                      <p style={{ fontSize: '0.9rem' }}><strong>Keywords:</strong> {data.keywords}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpdateBirthData }) {
+function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpdateBirthData, isLoading }) {
   const [locationInput, setLocationInput] = useState(location.city);
   const [birthDate, setBirthDate] = useState(birthData?.date || '');
   const [birthTime, setBirthTime] = useState(birthData?.time || '');
   const [birthLocation, setBirthLocation] = useState(birthData?.location || '');
-
-  const handleSaveBirth = () => {
-    if (!birthDate || !birthTime) {
-      alert('Please enter birth date and time');
-      return;
-    }
-    onUpdateBirthData({ date: birthDate, time: birthTime, location: birthLocation });
-    alert('Birth data saved!');
-  };
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
@@ -945,17 +672,12 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
         padding: '1.5rem',
         marginBottom: '1.5rem'
       }}>
-        <h3 style={{ color: dayColors.primary, marginBottom: '1rem', fontSize: '1.3rem' }}>
-          Location for Planetary Hours
-        </h3>
-        <label style={{ display: 'block', color: '#b8a080', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-          City, State, Country
-        </label>
+        <h3 style={{ color: dayColors.primary, marginBottom: '1rem' }}>Location</h3>
         <input
           type="text"
           value={locationInput}
           onChange={(e) => setLocationInput(e.target.value)}
-          placeholder="e.g., New York, NY, USA"
+          placeholder="City, State, Country"
           style={{
             width: '100%',
             background: `${dayColors.bg}cc`,
@@ -963,27 +685,26 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
             borderRadius: 8,
             padding: '0.75rem',
             color: '#f0e6d2',
-            fontFamily: 'inherit',
             fontSize: '1rem',
             marginBottom: '1rem'
           }}
         />
         <button
           onClick={() => onUpdateLocation(locationInput)}
+          disabled={isLoading}
           style={{
             width: '100%',
-            background: `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`,
+            background: isLoading ? '#666' : `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`,
             color: dayColors.bg,
             border: 'none',
             padding: '1rem',
             borderRadius: 8,
-            fontFamily: 'inherit',
             fontSize: '1rem',
             fontWeight: 'bold',
-            cursor: 'pointer'
+            cursor: isLoading ? 'not-allowed' : 'pointer'
           }}
         >
-          Update Location
+          {isLoading ? 'Updating...' : 'Update Location'}
         </button>
       </div>
 
@@ -993,12 +714,7 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
         borderRadius: 12,
         padding: '1.5rem'
       }}>
-        <h3 style={{ color: dayColors.primary, marginBottom: '1rem', fontSize: '1.3rem' }}>
-          Birth Data for Natal Chart
-        </h3>
-        <label style={{ display: 'block', color: '#b8a080', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-          Date of Birth
-        </label>
+        <h3 style={{ color: dayColors.primary, marginBottom: '1rem' }}>Birth Data</h3>
         <input
           type="date"
           value={birthDate}
@@ -1010,14 +726,10 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
             borderRadius: 8,
             padding: '0.75rem',
             color: '#f0e6d2',
-            fontFamily: 'inherit',
             fontSize: '1rem',
             marginBottom: '1rem'
           }}
         />
-        <label style={{ display: 'block', color: '#b8a080', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-          Time of Birth
-        </label>
         <input
           type="time"
           value={birthTime}
@@ -1029,19 +741,15 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
             borderRadius: 8,
             padding: '0.75rem',
             color: '#f0e6d2',
-            fontFamily: 'inherit',
             fontSize: '1rem',
             marginBottom: '1rem'
           }}
         />
-        <label style={{ display: 'block', color: '#b8a080', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-          Birth Location (optional)
-        </label>
         <input
           type="text"
           value={birthLocation}
           onChange={(e) => setBirthLocation(e.target.value)}
-          placeholder="e.g., Los Angeles, CA"
+          placeholder="Birth Location (optional)"
           style={{
             width: '100%',
             background: `${dayColors.bg}cc`,
@@ -1049,13 +757,19 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
             borderRadius: 8,
             padding: '0.75rem',
             color: '#f0e6d2',
-            fontFamily: 'inherit',
             fontSize: '1rem',
             marginBottom: '1rem'
           }}
         />
         <button
-          onClick={handleSaveBirth}
+          onClick={() => {
+            if (birthDate && birthTime) {
+              onUpdateBirthData({ date: birthDate, time: birthTime, location: birthLocation });
+              alert('Birth data saved!');
+            } else {
+              alert('Please enter date and time');
+            }
+          }}
           style={{
             width: '100%',
             background: `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`,
@@ -1063,7 +777,6 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
             border: 'none',
             padding: '1rem',
             borderRadius: 8,
-            fontFamily: 'inherit',
             fontSize: '1rem',
             fontWeight: 'bold',
             cursor: 'pointer'
@@ -1076,9 +789,8 @@ function SettingsView({ location, birthData, dayColors, onUpdateLocation, onUpda
   );
 }
 
-function HourDetailModal({ hour, dayColors, onClose, onStartScrying, getTimeRemaining, formatTime }) {
+function HourDetailModal({ hour, dayColors, onClose, onStartScrying, formatTime }) {
   const corr = CORRESPONDENCES[hour.planet.name];
-  const hymn = HYMNS[hour.planet.name];
 
   return (
     <div 
@@ -1133,48 +845,18 @@ function HourDetailModal({ hour, dayColors, onClose, onStartScrying, getTimeRema
           <div style={{ fontSize: '1.5rem', marginTop: '1rem' }}>
             {hour.zodiac.symbol} {hour.zodiac.name}
           </div>
-          <div style={{ fontSize: '0.9rem', color: '#b8a080', marginTop: '0.5rem' }}>
-            {hour.isDayHour ? '☀️ Day Hour' : '🌙 Night Hour'}
-          </div>
         </div>
 
         <div style={{ background: 'rgba(0,0,0,0.4)', padding: '1.5rem', borderRadius: 12, marginBottom: '1.5rem' }}>
-          <h3 style={{ color: dayColors.primary, marginBottom: '1rem', fontSize: '1.5rem' }}>
-            Planetary Power
-          </h3>
+          <h3 style={{ color: dayColors.primary, marginBottom: '1rem' }}>Correspondences</h3>
           <p><strong>Suitable For:</strong> {corr.suitable}</p>
-          <p><strong>Keywords:</strong> {corr.keywords}</p>
-          <p><strong>Dignity:</strong> {hour.dignity} • <strong>Strength:</strong> {hour.strength}</p>
-        </div>
-
-        <div style={{ background: 'rgba(0,0,0,0.4)', padding: '1.5rem', borderRadius: 12, marginBottom: '1.5rem' }}>
-          <h3 style={{ color: dayColors.primary, marginBottom: '1rem', fontSize: '1.5rem' }}>
-            Sacred Correspondences
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-            <div><strong>Archangel:</strong> {corr.archangel}</div>
-            <div><strong>Intelligence:</strong> {corr.intelligence}</div>
-            <div><strong>Spirit:</strong> {corr.spirit}</div>
-            <div><strong>Olympic Spirit:</strong> {corr.olympicSpirit}</div>
-            <div><strong>Metal:</strong> {corr.metal}</div>
-            <div style={{ gridColumn: '1 / -1' }}><strong>Incense:</strong> {corr.incense}</div>
-            <div style={{ gridColumn: '1 / -1' }}><strong>Crystals:</strong> {corr.crystals}</div>
-          </div>
-        </div>
-
-        <div style={{ background: 'rgba(0,0,0,0.4)', padding: '1.5rem', borderRadius: 12, marginBottom: '1.5rem' }}>
-          <h3 style={{ color: dayColors.primary, marginBottom: '1rem', fontSize: '1.5rem' }}>
-            Orphic Hymn to {hour.planet.name}
-          </h3>
-          <div style={{ fontStyle: 'italic', lineHeight: 1.8, color: '#e0d0b0', whiteSpace: 'pre-line', textAlign: 'center' }}>
-            {hymn}
-          </div>
+          <p><strong>Archangel:</strong> {corr.archangel}</p>
+          <p><strong>Metal:</strong> {corr.metal}</p>
+          <p><strong>Incense:</strong> {corr.incense}</p>
+          <p><strong>Crystals:</strong> {corr.crystals}</p>
         </div>
 
         <div style={{ textAlign: 'center' }}>
-          <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '1rem' }}>
-            ⚠️ Warning: Flickering lights. Not suitable for photosensitive individuals.
-          </p>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -1186,7 +868,6 @@ function HourDetailModal({ hour, dayColors, onClose, onStartScrying, getTimeRema
               border: 'none',
               padding: '1rem 2rem',
               borderRadius: 8,
-              fontFamily: 'inherit',
               fontSize: '1rem',
               fontWeight: 'bold',
               cursor: 'pointer',
@@ -1204,10 +885,10 @@ function HourDetailModal({ hour, dayColors, onClose, onStartScrying, getTimeRema
   );
 }
 
-function ScryingScreen({ onExit, showExit, onInteract }) {
-  const canvasRef = React.useRef(null);
+function ScryingScreen({ onExit, showExit, onInteract, planetColor }) {
+  const canvasRef = useRef(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -1216,29 +897,49 @@ function ScryingScreen({ onExit, showExit, onInteract }) {
     canvas.height = window.innerHeight;
 
     let animationId;
+    let noiseData = new Uint8Array(canvas.width * canvas.height);
+
+    function generateNoise() {
+      for (let i = 0; i < noiseData.length; i++) {
+        noiseData[i] = Math.random() * 255;
+      }
+    }
 
     function drawStatic() {
+      generateNoise();
       const imageData = ctx.createImageData(canvas.width, canvas.height);
       const data = imageData.data;
 
-      for (let i = 0; i < data.length; i += 4) {
-        const value = Math.random() * 255;
-        data[i] = value;
-        data[i + 1] = value;
-        data[i + 2] = value;
-        data[i + 3] = 255;
+      for (let i = 0; i < noiseData.length; i++) {
+        const value = noiseData[i];
+        const idx = i * 4;
+        data[idx] = value;
+        data[idx + 1] = value;
+        data[idx + 2] = value;
+        data[idx + 3] = 255;
       }
 
       ctx.putImageData(imageData, 0, 0);
+      
+      // Add scanlines
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      for (let y = 0; y < canvas.height; y += 4) {
+        ctx.fillRect(0, y, canvas.width, 2);
+      }
+      
+      // Add flicker
+      if (Math.random() > 0.95) {
+        ctx.fillStyle = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.05)`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
       animationId = requestAnimationFrame(drawStatic);
     }
 
     drawStatic();
 
     return () => {
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
+      if (animationId) cancelAnimationFrame(animationId);
     };
   }, []);
 
@@ -1282,9 +983,7 @@ function ScryingScreen({ onExit, showExit, onInteract }) {
             fontSize: '1rem',
             fontWeight: 'bold',
             cursor: 'pointer',
-            transition: 'opacity 0.5s',
-            zIndex: 3001,
-            opacity: 1
+            zIndex: 3001
           }}
         >
           Exit Scrying
@@ -1293,3 +992,53 @@ function ScryingScreen({ onExit, showExit, onInteract }) {
     </div>
   );
 }
+
+function NatalView({ natalChart, birthData, dayColors, onNavigateToSettings }) {
+  if (!natalChart) {
+    return (
+      <div style={{ textAlign: 'center', padding: '3rem' }}>
+        <p style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>No birth data set</p>
+        <button onClick={onNavigateToSettings} style={{
+          background: `linear-gradient(135deg, ${dayColors.primary} 0%, ${dayColors.secondary} 100%)`,
+          color: dayColors.bg,
+          border: 'none',
+          padding: '1rem 2rem',
+          borderRadius: 8,
+          cursor: 'pointer',
+          fontSize: '1rem'
+        }}>
+          Add Birth Data
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 style={{ textAlign: 'center', color: dayColors.primary, fontSize: '1.8rem', marginBottom: '1rem' }}>Natal Chart</h2>
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        {natalChart.map((item, idx) => (
+          <div key={idx} style={{
+            background: `${dayColors.bg}99`,
+            border: `2px solid #3a2a5a`,
+            borderLeftWidth: 6,
+            borderLeftColor: PLANET_DETAILS[item.planet].color,
+            borderRadius: 12,
+            padding: '1.25rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <div style={{ fontSize: '2.5rem', color: PLANET_DETAILS[item.planet].color }}>
+                  {PLANET_DETAILS[item.planet].symbol}
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.5rem', color: PLANET_DETAILS[item.planet].color }}>{item.planet}</div>
+                  <div style={{ fontSize: '0.9rem', color: '#b8a080' }}>{item.longitude.toFixed(2)}°</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '2.5rem' }}>{item.zodiac.symbol}</div>
+                <div style={{ fontSize: '1.2rem', color: '#e0d0b0' }}>{item.zodiac.name}</div>
+              </div>
+            </div>
+          </div>
